@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .product-list {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .product-list-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Cadastro de Produto</h2>
+
+    <div class="form-group">
+        <label for="lote">Lote do Produto</label>
+        <input type="text" id="lote" placeholder="Digite o lote do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="quantidade">Quantidade</label>
+        <input type="number" id="quantidade" placeholder="Digite a quantidade do produto">
+    </div>
+
+    <div class="form-group">
+        <label for="descricao">Descrição do Produto</label>
+        <input type="text" id="descricao" placeholder="Digite a descrição do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="modelo">Modelo do Produto</label>
+        <input type="text" id="modelo" placeholder="Digite o modelo do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="peso">Peso do Produto (kg)</label>
+        <input type="text" id="peso" placeholder="Digite o peso do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="altura">Altura (cm)</label>
+        <input type="text" id="altura" placeholder="Digite a altura do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="comprimento">Comprimento (cm)</label>
+        <input type="text" id="comprimento" placeholder="Digite o comprimento do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="largura">Largura (cm)</label>
+        <input type="text" id="largura" placeholder="Digite a largura do produto">
+    </div>
+    
+    <div class="form-group">
+        <label for="sku">SKU do Produto</label>
+        <input type="text" id="sku" placeholder="Digite o SKU do produto">
+    </div>
+    
+    <button onclick="adicionarProduto()">Adicionar Produto</button>
+    <button onclick="gerarExcel()">Salvar e Exportar para Excel</button>
+
+    <div class="product-list" id="product-list">
+        <h3>Itens no Lote:</h3>
+        <!-- Produtos adicionados aparecerão aqui -->
+    </div>
+</div>
+
+<!-- Script para manipulação do Excel com SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    var produtos = [];
+
+    function adicionarProduto() {
+        // Coletando os dados do formulário
+        var lote = document.getElementById("lote").value;
+        var quantidade = document.getElementById("quantidade").value;
+        var descricao = document.getElementById("descricao").value;
+        var modelo = document.getElementById("modelo").value;
+        var peso = document.getElementById("peso").value;
+        var altura = document.getElementById("altura").value;
+        var comprimento = document.getElementById("comprimento").value;
+        var largura = document.getElementById("largura").value;
+        var sku = document.getElementById("sku").value;
+
+        // Adicionando produto ao array
+        produtos.push([lote, quantidade, descricao, modelo, peso, altura, comprimento, largura, sku]);
+
+        // Exibindo a lista de produtos
+        atualizarListaDeProdutos();
+
+        // Limpando o formulário
+        document.getElementById("lote").value = "";
+        document.getElementById("quantidade").value = "";
+        document.getElementById("descricao").value = "";
+        document.getElementById("modelo").value = "";
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        document.getElementById("comprimento").value = "";
+        document.getElementById("largura").value = "";
+        document.getElementById("sku").value = "";
+    }
+
+    function atualizarListaDeProdutos() {
+        var productListDiv = document.getElementById("product-list");
+        productListDiv.innerHTML = "<h3>Itens no Lote:</h3>";
+        
+        produtos.forEach(function(produto, index) {
+            productListDiv.innerHTML += "<div class='product-list-item'>Item " + (index + 1) + ": " +
+                produto[2] + " (Quantidade: " + produto[1] + ", SKU: " + produto[8] + ")</div>";
+        });
+    }
+
+    function gerarExcel() {
+        if (produtos.length === 0) {
+            alert("Adicione ao menos um produto antes de exportar.");
+            return;
+        }
+
+        // Adicionando cabeçalhos
+        var planilha = [["Lote", "Quantidade", "Descrição", "Modelo", "Peso", "Altura", "Comprimento", "Largura", "SKU"]];
+        planilha = planilha.concat(produtos);
+
+        // Criando uma nova planilha
+        var ws = XLSX.utils.aoa_to_sheet(planilha);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+
+        // Gerando o nome do arquivo com data
+        var hoje = new Date();
+        var dia = String(hoje.getDate()).padStart(2, '0');
+        var mes = String(hoje.getMonth() + 1).padStart(2, '0'); // Meses são indexados de 0 a 11
+        var ano = hoje.getFullYear();
+        var nomeArquivo = "produtos_" + dia + "-" + mes + "-" + ano + ".xlsx";
+
+        // Gerando e baixando o arquivo Excel
+        XLSX.writeFile(wb, nomeArquivo);
+    }
+</script>
+
+</body>
+</html>
